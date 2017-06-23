@@ -1,7 +1,7 @@
 #!/bin/bash
 
-apt-get update -y || yum -y update
-apt-get install -y apache2 lsof || yum -y install httpd lsof
+apt-get update -y
+apt-get install -y apache2 lsof
 
-service apache2 start || service httpd start
-update-rc.d apache2 enable || chkconfig httpd on
+service apache2 start
+update-rc.d apache2 enable
