@@ -1,8 +1,8 @@
 #!/bin/bash
 
 if [ -f /etc/redhat-release ];then
-yum install epel-release
-yum install httpd
+yum install -y epel-release
+yum install -y httpd
 service httpd start
 chkconfig httpd on
 else
