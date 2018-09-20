@@ -12,4 +12,6 @@ service apache2 start
 update-rc.d apache2 enable
 fi
 
-[ -f /var/www/html/index.html ] && rm -rf /var/www/html/index.html
+if [ -f /var/www/html/index.html ];then
+rm -rf /var/www/html/index.html
+fi
