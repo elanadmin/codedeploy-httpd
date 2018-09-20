@@ -1,4 +1,10 @@
 #!/bin/bash
 
-service apache2 restart || service httpd restart
-update-rc.d apache2 enable || chkconfig httpd on
+
+if [ -f /etc/redhat-release ];then
+service httpd restart
+chkconfig httpd on
+else
+service apache2 start
+update-rc.d apache2 enable
+fi
