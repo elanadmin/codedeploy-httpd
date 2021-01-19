@@ -1,9 +1,85 @@
 #!/bin/bash
 
-apt-get update -y
-apt-get install -y apache2 lsof
+###############WEBTYPE##################
+#webtype:
+#  RedHat Family Options: [httpd|nginx]
+#  Ubuntu Family Options: [httpd|nginx]
+########################################
 
-service apache2 start
-update-rc.d apache2 enable
+# Restart WebServer.
+webtype=httpd
+hname=$(hostname -f)
+date=$(date +%Y%m%d_%H%M%S)
 
-[ -f /var/www/html/index.html ] && rm -rf /var/www/html/index.html
+echo -e "\nRunning WebServer Setup on $hname ...\n"
+
+systemd_path=$(which systemctl)
+
+########################################################################################
+
+Service_OS() {
+
+  echo -e "\nDetected OperatingSystem : $OS for $hname ...\n"
+
+  service=$1
+  action=$2
+  atboot=$3
+
+  if [ "$OS" = "RedHat" ];then
+    if [ -n "$systemd_path" ];then
+      systemctl $action $service
+      systemctl $atboot $service
+    else
+      [ "$atboot" = "enable" ] && atboots=on || atboots=off
+      service $service $action
+      chkconfig $service $atboots
+    fi
+  elif [ "$OS" = "Ubuntu" ];then
+    if [ -n "$systemd_path" ];then
+      systemctl $action $service
+      systemctl $atboot $service
+    else
+      service  $service $action
+      update-rc.d $service $atboot
+    fi
+  fi
+}
+
+RedHat_Web() {
+  yum repolist
+  yum -y install $webtype lsof ruby2.0 aws-cli curl
+  Service_OS $webtype start enable
+}
+
+Ubuntu_Web() {
+  apt-get update
+  apt-get install -y $webtype lsof ruby2.0 awscli curl
+  Service_OS $webtype start enable
+}
+
+###########################################################################################
+#Install WebServer
+
+if [ -f /etc/redhat-release ];then
+  export OS=RedHat
+  RedHat_Web
+elif [ -f /etc/debconf.conf ];then
+  if [ $webtype = "httpd" ];then
+    export webtype=apache2
+  fi
+  export OS=Ubuntu
+  Ubuntu_Web
+else
+  echo -e "Web Install NOT Supported on this Platform ...\n"
+  export OS=unknown
+  exit
+fi
+
+if [ "$webtype" = "nginx" ];then
+  index="/usr/share/nginx/html"
+else
+  index="/var/www/html"
+fi
+
+rm -rf $index/index.html
+###########################################################################################
